@@ -1,0 +1,34 @@
+import requests
+from bs4 import BeautifulSoup
+
+def calculate_win_score(stats):
+    pts = int(stats['pts'])
+    fga = int(stats['fga'])
+    fta = int(stats['fta'])
+    oreb = int(stats['oreb'])
+    ast = int(stats['ast'])
+    tov = int(stats['tov'])
+    stl = int(stats['stl'])
+    blk = int(stats['blk'])
+    dreb = int(stats['dreb'])
+    pf = int(stats['pf'])
+
+    win_score = pts - fga - fta/2 + oreb + ast/2 - tov + stl + blk/2 + dreb/2 - pf/2
+    return win_score
+
+def scrape_and_calculate(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    table = soup.find('table', {'id': 'box-NYL-game-basic'})
+    tbody = table.find('tbody')
+
+    for row in tbody.find_all('tr'):
+        stats = {}
+        for data in row.find_all('td'):
+            stats[data['data-stat']] = data.text
+
+        if stats:
+            print(f"Player: {stats['player']}, Win Score: {calculate_win_score(stats)}")
+
+scrape_and_calculate('https://www.basketball-reference.com/wnba/boxscores/202309190NYL.html')
